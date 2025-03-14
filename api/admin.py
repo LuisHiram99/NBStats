@@ -20,7 +20,7 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(Season)
 class SeasonAdmin(admin.ModelAdmin):
-    list_display = ('year', 'start_date', 'end_date', 'is_current')
+    list_display = ('year', 'is_current') #'start_date', 'end_date', 
     list_filter = ('is_current',)
 
 @admin.register(Player)
