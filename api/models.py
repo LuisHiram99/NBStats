@@ -2,6 +2,14 @@ from django.db import models
 
 # Create your models here.
 
+class TeamStats(models.Model):
+    team_id = models.IntegerField()
+    team_name = models.CharField(max_length=50)
+    year = models.IntegerField()
+    gp = models.IntegerField()
+    wins = models.IntegerField()
+    losses = models.IntegerField()
+
 class Conference(models.Model):
     name = models.CharField(max_length=50)
 
