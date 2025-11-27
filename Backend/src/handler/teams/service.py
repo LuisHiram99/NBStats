@@ -23,3 +23,11 @@ def get_team_by_abbreviation(abbrev):
     except Exception as e:
         print(f"Error getting teams information: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+def get_team_roster_by_abbrev(season, abbrev):
+    try:
+        team_data = Teams().get_team_roster_per_season(teamAbbreviation=abbrev, season=season)
+        return team_data
+    except Exception as e:
+        print(f"Error getting teams information: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
