@@ -6,6 +6,7 @@ import { asset } from '../lib/data.js';
 import ColorModeSwitcher from '../components/ColorModeSwitcher.astro';
 import GitHubButton from '../components/GitHubButton.astro';
 import SearchInput from '../components/SearchInput.astro';
+import logo from '../assets/logo.svg';
 ---
 
 <nav
@@ -45,13 +46,13 @@ import SearchInput from '../components/SearchInput.astro';
 				</button>
 				<a href="/" class="flex ml-2 md:mr-24">
 					<img
-						src={asset('images/logo.svg')}
-						class="h-8 mr-3"
-						alt="FlowBite Logo"
+						src={logo.src}
+						class="h-8 w-auto mr-3"
+						alt="NBStats Logo"
 					/>
 					<span
 						class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white"
-						>Flowbite</span
+						>NBStats</span
 					>
 				</a>
 
