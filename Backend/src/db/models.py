@@ -16,6 +16,9 @@ class Teams(Base):
     conference = Column(String, nullable=False)
     year_founded = Column(Integer, nullable=True)
 
+    # Relationship with players
+    players = relationship("Players", back_populates="team")
+
     def __repr__(self):
         return f"<Team(id={self.id}, full_name='{self.full_name}', abbreviation='{self.abbreviation}', city='{self.city}', conference='{self.conference}', year_founded={self.year_founded})>"
     
