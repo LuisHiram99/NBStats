@@ -4,10 +4,53 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+import sys
+from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# env.py is at <repo>/backend/alembic/env.py — add the src directory to sys.path
+# In Docker, PYTHONPATH is already set to /app/src, so we can import directly
+# For local development, we need to add the path
+try:
+    from db.database import Base
+    from db import models
+except ModuleNotFoundError:
+    # Fallback for local development
+    repo_root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(repo_root / 'backend' / 'src'))
+    from db.database import Base
+    from db import models
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Load environment variables from config/.env and set the sqlalchemy.url
+# so Alembic uses the same DB configuration as the application.
+try:
+    # In Docker, config is at /app/config/.env
+    # For local dev, it's at backend/config/.env relative to repo root
+    env_path = Path('/app/config/.env')
+    if not env_path.exists():
+        # Fallback for local development
+        env_path = Path(__file__).resolve().parents[1] / 'config' / '.env'
+    
+    load_dotenv(dotenv_path=env_path)
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    DB_PORT = os.getenv('DB_PORT', '5432')
+    DB_NAME = os.getenv('DB_NAME')
+    if DB_USER and DB_PASSWORD and DB_NAME:
+        # Use sync psycopg2 driver for Alembic/SQLAlchemy Engine
+        db_url = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        config.set_main_option('sqlalchemy.url', db_url)
+except Exception:
+    # If anything fails, fall back to the value already present in alembic.ini
+    pass
+
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -18,7 +61,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -31,7 +74,7 @@ def run_migrations_offline() -> None:
 
     This configures the context with just a URL
     and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
+    here as  well.  By skipping the Engine creation
     we don't even need a DBAPI to be available.
 
     Calls to context.execute() here emit the given string to the

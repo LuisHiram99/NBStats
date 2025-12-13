@@ -14,7 +14,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 
 # Load environment variables from config/.env
-env_path = '.env'
+env_path = PROJECT_ROOT / 'Backend' / 'config' / '.env'
 load_dotenv(dotenv_path=env_path)
 
 # Obtener variables de entorno
