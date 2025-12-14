@@ -24,6 +24,8 @@ except ImportError as e:
     raise
 
 
+
+
 def get_team_logo_path(team_abbreviation: str) -> str:
     """
     Get the logo file path for a team based on its abbreviation.
@@ -168,6 +170,9 @@ async def get_teams_from_db():
         raise e
 
 
+
+
+
 async def clear_teams_table():
     """
     Clear all teams from the database. Use with caution!
@@ -293,3 +298,5 @@ if __name__ == "__main__":
     else:
         print("❌ Teams population failed!")
         print(f"Error: {result['error']}")
+
+
