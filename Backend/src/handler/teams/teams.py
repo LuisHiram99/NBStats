@@ -61,7 +61,8 @@ async def get_teams_from_database():
                 "city": team.city,
                 "state": team.state,
                 "conference": team.conference,
-                "year_founded": team.year_founded
+                "year_founded": team.year_founded,
+                "logo": team.logo
             })
         
         # Group by conference

@@ -40,6 +40,28 @@ async def test_api_functions():
         print(f"   🏛️ City: {team['city']}")
     except Exception as e:
         print(f"   ❌ Error: {e}")
+
+    # Test database teams with logos
+    print("\n3️⃣ Testing database teams with logo paths...")
+    try:
+        from db.static_data import get_teams_from_db
+        teams = await get_teams_from_db()
+        
+        # Show a few teams with their logos
+        sample_teams = ['LAL', 'BOS', 'GSW', 'MIA', 'CHI']
+        for abbrev in sample_teams:
+            team = next((t for t in teams if t.abbreviation == abbrev), None)
+            if team:
+                logo_status = "✅" if team.logo else "❌"
+                print(f"   {logo_status} {team.full_name} ({team.abbreviation})")
+                if team.logo:
+                    print(f"      Logo: {team.logo}")
+        
+        teams_with_logos = sum(1 for t in teams if t.logo)
+        print(f"\n   📊 Total teams with logos: {teams_with_logos}/30")
+        
+    except Exception as e:
+        print(f"   ❌ Error: {e}")
     
     print("\n🎉 API function tests completed!")
 

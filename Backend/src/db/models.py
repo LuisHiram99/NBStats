@@ -15,6 +15,7 @@ class Teams(Base):
     state = Column(String, nullable=True)
     conference = Column(String, nullable=False)
     year_founded = Column(Integer, nullable=True)
+    logo = Column(String, nullable=True)
 
     # Relationship with players
     players = relationship("Players", back_populates="team")
