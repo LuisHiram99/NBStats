@@ -1,7 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from . import service
-from db.static_data import populate_teams_table, clear_teams_table, update_teams_data, get_teams_from_db
 from db.database import async_session
 from db.models import Teams
 from db.schemas import TeamResponse
@@ -20,8 +19,8 @@ router = APIRouter(
 
 @router.get("/all", response_model=List[TeamResponse])
 @limiter.limit("10/minute")
-async def get_all_teams(request: Request):
-    teams = await service.get_teams_from_db()
+async def get_all_teams(request: Request, db: AsyncSession = Depends(get_db)):
+    teams = await service.get_teams_from_db(db=db)
     return [TeamResponse.model_validate(team) for team in teams]
 
 
@@ -34,5 +33,5 @@ async def get_teams_by_conference(request: Request, conference: str, db: AsyncSe
     return await service.get_teams_by_conference(db=db, conference=conference)
 
 @router.get("/{abbrev}/roster/{season}")
-async def get_team_roster(abbrev, season):
-    return await service.get_team_roster_by_abbrev(abbrev=abbrev, season=season)
+async def get_team_roster(request: Request,abbrev, season, db: AsyncSession = Depends(get_db)):
+    return await service.get_team_roster_by_abbrev(db=db, abbrev=abbrev, season=season)
