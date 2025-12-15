@@ -24,14 +24,13 @@ app.add_middleware(
 
 
 # Rate limiter: 
-# Rate limiting 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # Add logo root endpoint:
 logos_path = Path(__file__).parent / "logos"
-logos_path.mkdir(exist_ok=True)  # Create if it doesn't exist
+logos_path.mkdir(exist_ok=True) 
 
 app.mount("/logos", StaticFiles(directory=str(logos_path)), name="logos")
 
