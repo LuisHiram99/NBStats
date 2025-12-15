@@ -24,6 +24,62 @@ except ImportError as e:
     raise
 
 
+
+
+def get_team_logo_path(team_abbreviation: str) -> str:
+    """
+    Get the logo file path for a team based on its abbreviation.
+    
+    Args:
+        team_abbreviation: Team abbreviation (e.g., 'LAL', 'BOS')
+    
+    Returns:
+        Relative path to the logo file from the src directory
+    """
+    # Mapping of team abbreviations to their logo filenames
+    logo_mapping = {
+        'ATL': 'atlanta_hawks-primary-2021.png',
+        'BOS': 'boston_celtics_logo_primary_19977628.png',
+        'BKN': 'brooklyn_nets_logo_primary_2025_sportslogosnet-1501.png',
+        'CHA': 'charlotte__hornets_-primary-2015.png',
+        'CHI': 'chicago_bulls_logo_primary_19672598.png',
+        'CLE': 'cleveland_cavaliers_logo_primary_2023_sportslogosnet-5369.png',
+        'DAL': 'dallas_mavericks-primary-2018.png',
+        'DEN': 'denver_nuggets-primary-2019.png',
+        'DET': 'detroit_pistons_logo_primary_20185710.png',
+        'GSW': 'golden_state_warriors-primary-2020.png',
+        'HOU': 'houston_rockets-primary-2020.png',
+        'IND': 'indiana-pacers-logo-primary-2026-22496872026.png',
+        'LAC': 'los_angeles_clippers_logo_primary_2025_sportslogosnet-5542.png',
+        'LAL': 'los_angeles_lakers_logo_primary_2024_sportslogosnet-7324.png',
+        'MEM': 'memphis_grizzlies-primary-2019.png',
+        'MIA': 'burm5gh2wvjti3xhei5h16k8e.gif',  # Miami Heat logo
+        'MIL': 'milwaukee_bucks_logo_primary_20165763.png',
+        'MIN': 'minnesota_timberwolves-primary-2018.png',
+        'NOP': 'new_orleans_pelicans_logo_primary_2024_sportslogosnet-9292.png',
+        'NYK': 'new_york_knicks_logo_primary_2024_sportslogosnet-7170.png',
+        'OKC': 'oklahoma-city-thunder-logo-primary-2009-9699.png',
+        'ORL': 'orlando-magic-logo-primary-2026-21794952026.png',
+        'PHI': 'philadelphia_76ers-primary-2016.png',
+        'PHX': 'phoenix_suns_logo_primary_20143696.png',
+        'POR': 'portland_trail_blazers-primary-2018.png',
+        'SAC': 'sacramento_kings-primary-2017.png',
+        'SAS': 'san_antonio_spurs-primary-2018.png',
+        'TOR': 'toronto_raptors-primary-2021.png',
+        'UTA': 'utah-jazz-logo-primary-2026-1109.png',
+        'WAS': 'washington_wizards-primary-2016.png'
+    }
+    
+    # Get the filename from the mapping
+    filename = logo_mapping.get(team_abbreviation.upper())
+    
+    if filename:
+        return f"logos/{filename}"
+    else:
+        # Return None if no logo found for this team
+        return None
+
+
 async def populate_teams_table():
     """
     Populate the teams table with all NBA teams data from the NBA API.
@@ -55,6 +111,9 @@ async def populate_teams_table():
                 # Get additional team details including conference
                 team_details = get_team_details_by_abbreviation(team_data['abbreviation'])
                 
+                # Get logo path for this team
+                logo_path = get_team_logo_path(team_data['abbreviation'])
+                
                 # Create new team record
                 new_team = Teams(
                     team_id=team_id,
@@ -64,7 +123,8 @@ async def populate_teams_table():
                     city=team_data['city'],
                     state=team_data['state'],
                     conference=team_details['conference'],
-                    year_founded=team_data['year_founded']
+                    year_founded=team_data['year_founded'],
+                    logo=logo_path
                 )
                 
                 session.add(new_team)
@@ -108,6 +168,9 @@ async def get_teams_from_db():
     except Exception as e:
         print(f"Error retrieving teams from database: {e}")
         raise e
+
+
+
 
 
 async def clear_teams_table():
@@ -168,6 +231,9 @@ async def update_teams_data():
                     # Get additional team details including conference
                     team_details = get_team_details_by_abbreviation(team_data['abbreviation'])
                     
+                    # Get logo path for this team
+                    logo_path = get_team_logo_path(team_data['abbreviation'])
+                    
                     # Update team data
                     existing_team.full_name = team_data['full_name']
                     existing_team.abbreviation = team_data['abbreviation']
@@ -176,6 +242,7 @@ async def update_teams_data():
                     existing_team.state = team_data['state']
                     existing_team.conference = team_details['conference']
                     existing_team.year_founded = team_data['year_founded']
+                    existing_team.logo = logo_path
                     
                     updated_count += 1
             
@@ -231,3 +298,5 @@ if __name__ == "__main__":
     else:
         print("❌ Teams population failed!")
         print(f"Error: {result['error']}")
+
+
