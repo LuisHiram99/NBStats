@@ -118,3 +118,9 @@ class player():
         roster_data.drop(columns=['TeamID', 'SEASON', 'LeagueID', 'EXP', 'AGE', 'NUM', 'HOW_ACQUIRED', 'PLAYER_SLUG', 'NICKNAME'], inplace=True, axis=1)
         roster_data.set_index('PLAYER_ID', drop=True, inplace=True)
         return roster_data
+    
+    def get_player_teams(self, player_id:int) -> pd.DataFrame:
+        career = playercareerstats.PlayerCareerStats(player_id=player_id)
+        career_df = career.get_data_frames()[0]
+        teams_played_for = career_df[['TEAM_ID', 'PLAYER_ID', 'SEASON_ID']].drop_duplicates().reset_index(drop=True)
+        return teams_played_for

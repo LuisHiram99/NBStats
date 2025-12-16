@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
-
+# ------------------ Team Schemas ------------------ #
 class TeamBase(BaseModel):
     full_name: str
     abbreviation: str
@@ -28,6 +28,7 @@ class TeamCreate(TeamBase):
 class TeamUpdate(TeamBase):
     pass
 
+# ------------------ Player Schemas ------------------ #
 class PlayerBase(BaseModel):
     player_name: str
     position: Optional[str] = None
@@ -47,4 +48,22 @@ class PlayerCreate(PlayerBase):
     player_id: int
 
 class PlayerUpdate(PlayerBase):
+    pass
+
+# ------------------ Player-Team Association Schemas ------------------ #
+class PlayerTeamAssociationBase(BaseModel):
+    player_id: int
+    team_id: int
+    season: str 
+    
+class PlayerTeamAssociationResponse(PlayerTeamAssociationBase):
+    players_teams_id: int
+
+    class Config:
+        from_attributes = True
+
+class PlayerTeamAssociationCreate(PlayerTeamAssociationBase):
+    players_teams_id: int
+
+class PlayerTeamAssociationUpdate(PlayerTeamAssociationBase):
     pass

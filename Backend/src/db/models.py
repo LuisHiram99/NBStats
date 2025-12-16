@@ -41,10 +41,10 @@ class Players(Base):
 class PlayerTeamsAssociation(Base):
     __tablename__ = 'player_teams_association'
 
-    players_teams_id = Column(Integer, primary_key=True, index=True)
+    players_teams_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     player_id = Column(Integer, ForeignKey('players.player_id'))
     team_id = Column(Integer, ForeignKey('teams.team_id'))
-    season = Column(String, primary_key=True)
+    season = Column(String, nullable=False)
 
 
 class Games(Base):
