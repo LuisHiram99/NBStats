@@ -112,3 +112,39 @@ async def get_team_roster_by_abbrev(db: AsyncSession,season: str, abbrev: str):
     except Exception as e:
         print(f"Error retrieving roster for team {abbrev} in season {season}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+async def get_team_roster_by_id_in_db(db: AsyncSession, season: str, abbrev: str):
+    """
+    Retrieve the roster for a specific team by its ID for a given season.
+    
+    Args:
+        season (str): The season year (e.g., "2023-24")
+        team_id (int): The team's unique identifier
+    Returns:
+        List of player dictionaries representing the team's roster
+    """
+    try:
+        team_id_query = await db.execute(
+            select(models.Teams.team_id)
+            .where(models.Teams.abbreviation == abbrev)
+        )
+
+        team_id_query = team_id_query.scalar_one_or_none()
+        if team_id_query is None:
+            raise HTTPException(status_code=404, detail="Team not found")
+        players = await db.execute(
+            select(models.Players)
+            .join(models.PlayerTeamsAssociation, models.Players.player_id == models.PlayerTeamsAssociation.player_id)
+            .where(models.PlayerTeamsAssociation.team_id == team_id_query)
+            .where(models.PlayerTeamsAssociation.season == season)
+        ) 
+        
+        players = players.scalars().all()
+        if not players:
+            raise HTTPException(status_code=404, detail="No players found for this team in the specified season")
+        return players
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error retrieving roster for team ID {team_id_query} in season {season}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

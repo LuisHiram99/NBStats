@@ -17,9 +17,6 @@ class Teams(Base):
     year_founded = Column(Integer, nullable=True)
     logo = Column(String, nullable=True)
 
-    # Relationship with players
-    players = relationship("Players", back_populates="team")
-
     def __repr__(self):
         return f"<Team(id={self.id}, full_name='{self.full_name}', abbreviation='{self.abbreviation}', city='{self.city}', conference='{self.conference}', year_founded={self.year_founded})>"
     
@@ -28,23 +25,27 @@ class Players(Base):
     __tablename__ = 'players'
 
     player_id = Column(Integer, primary_key=True, index=True)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
+    player_name = Column(String, nullable=False)
+    position = Column(String, nullable=True)
     height = Column(String, nullable=True)
     weight = Column(String, nullable=True)
     birth_date = Column(DateTime, nullable=False)
-
-    team_id = Column(Integer, ForeignKey('teams.team_id'), nullable=True)
-    jersey_number = Column(String, nullable=True)
-    position = Column(String, nullable=True)
-    draft_year = Column(Integer, nullable=False)
     school = Column(String, nullable=True)
+    rookie_season = Column(Integer, nullable=False)
+    
 
-    team = relationship("Teams", back_populates="players")
 
     def __repr__(self):
         return f"<Player(id={self.id}, first_name='{self.first_name}', last_name='{self.last_name}', team_id={self.team_id}, position='{self.position}', height='{self.height}', weight={self.weight}, birth_date={self.birth_date})>"
     
+class PlayerTeamsAssociation(Base):
+    __tablename__ = 'player_teams_association'
+
+    players_teams_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    player_id = Column(Integer, ForeignKey('players.player_id'))
+    team_id = Column(Integer, ForeignKey('teams.team_id'))
+    season = Column(String, nullable=False)
+
 
 class Games(Base):
     __tablename__ = 'games'

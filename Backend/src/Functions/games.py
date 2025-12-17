@@ -6,7 +6,30 @@ from nba_api.stats.endpoints import leaguestandingsv3
 from datetime import datetime, timezone, timedelta
 from dateutil import parser
 from nba_api.live.nba.endpoints import scoreboard
-from .helpfuncs import get_current_season
+
+# Import get_current_season with error handling for different import contexts
+try:
+    from .helpfuncs import get_current_season
+except ImportError:
+    # Fallback for when imported from outside package context
+    try:
+        from helpfuncs import get_current_season
+    except ImportError:
+        # Define a minimal version if helpfuncs module is not available
+        def get_current_season():
+            today = datetime.now()
+            year = today.year
+            month = today.month
+            
+            # NBA season typically starts in October
+            # If current month is before October, we're in the second half of the season
+            if month < 10:
+                season_start = year - 1
+            else:
+                season_start = year
+            
+            season_end = str(season_start + 1)[-2:]  # Get last 2 digits
+            return f"{season_start}-{season_end}"
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Tuple, Union, Optional
