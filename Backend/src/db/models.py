@@ -63,3 +63,34 @@ class Games(Base):
 
     def __repr__(self):
         return f"<Game(id={self.id}, date={self.date}, home_team_id={self.home_team_id}, away_team_id={self.away_team_id}, home_team_score={self.home_team_score}, away_team_score={self.away_team_score}, season='{self.season}')>"
+    
+class RegularSeasonStats(Base):
+    __tablename__ = 'regular_season_stats'
+
+    stats_id = Column(Integer, primary_key=True, index=True)
+    players_teams_id = Column(Integer, ForeignKey('player_teams_association.players_teams_id'))
+
+    games_played = Column(Integer, nullable=True)
+    games_started = Column(Integer, nullable=True)
+    total_minutes = Column(Integer, nullable=True)
+    total_field_goals_made = Column(Integer, nullable=True)
+    total_field_goals_attempt = Column(Integer, nullable=True)
+    total_threes_goals_made = Column(Integer, nullable=True)
+    total_threes_goals_attempt = Column(Integer, nullable=True)
+    total_free_throws_made = Column(Integer, nullable=True)
+    total_free_throws_attempt = Column(Integer, nullable=True)
+    total_offensive_rebounds = Column(Integer, nullable=True)
+    total_defensive_rebounds = Column(Integer, nullable=True)
+    total_rebounds = Column(Integer, nullable=True)
+    total_assists = Column(Integer, nullable=True)
+    total_steals = Column(Integer, nullable=True)
+    total_blocks = Column(Integer, nullable=True)
+    total_turnovers = Column(Integer, nullable=True)
+    total_personal_fouls = Column(Integer, nullable=True)
+    total_points = Column(Integer, nullable=True)
+
+    
+    player = relationship("Players", backref="regular_season_stats")
+
+    def __repr__(self):
+        return f"<RegularSeasonStats(id={self.id}, player_id={self.player_id}, season='{self.season}', games_played={self.games_played}, points_per_game={self.points_per_game}, rebounds_per_game={self.rebounds_per_game}, assists_per_game={self.assists_per_game}, steals_per_game={self.steals_per_game}, blocks_per_game={self.blocks_per_game})>"
