@@ -34,4 +34,5 @@ async def get_teams_by_conference(request: Request, conference: str, db: AsyncSe
 
 @router.get("/{abbrev}/roster/{season}")
 async def get_team_roster(request: Request,abbrev, season, db: AsyncSession = Depends(get_db)):
-    return await service.get_team_roster_by_abbrev(db=db, abbrev=abbrev, season=season)
+    return await service.get_team_roster_by_id_in_db(db=db, abbrev=abbrev, season=season)
+

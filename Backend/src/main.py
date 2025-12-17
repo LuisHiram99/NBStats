@@ -6,8 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Annotated
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
+
+
 from handler.teams import teams
+from handler.players import players
 from handler.rate_limiter import limiter
+
+
+
 app = FastAPI(
     title="NBStats",
     description="NBA app for getting high valuable stats",
@@ -38,6 +44,7 @@ app.mount("/logos", StaticFiles(directory=str(logos_path)), name="logos")
 api_route = "/api/v1"
 
 app.include_router(teams.router, prefix=api_route, tags=["teams"])
+app.include_router(players.router, prefix=api_route, tags=["players"])
 
 
 @app.get("/")
