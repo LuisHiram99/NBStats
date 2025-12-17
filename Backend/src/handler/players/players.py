@@ -21,9 +21,11 @@ async def get_all_players(request: Request, db: AsyncSession = Depends(get_db), 
     return [PlayerResponse.model_validate(player) for player in players]
 
 @router.get("/{player_id}")
+@limiter.limit("10/minute")
 async def get_player_by_id(request: Request, player_id: int, db: AsyncSession = Depends(get_db)):
     return await service.get_player_by_id(db=db, player_id=player_id)
 
 @router.get("/search/{name}")
+@limiter.limit("10/minute")
 async def get_player_by_name(request: Request, name: str, db: AsyncSession = Depends(get_db)):
     return await service.get_player_by_name(db=db, name=name)

@@ -25,14 +25,17 @@ async def get_all_teams(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{abbrev}")
+@limiter.limit("10/minute")
 async def get_team_by_abbreviation(request: Request, abbrev: str, db: AsyncSession = Depends(get_db)):
     return await service.get_team_by_abbreviation(db=db, abbrev=abbrev)
 
 @router.get("/conference/{conference}")
+@limiter.limit("10/minute")
 async def get_teams_by_conference(request: Request, conference: str, db: AsyncSession = Depends(get_db)):
     return await service.get_teams_by_conference(db=db, conference=conference)
 
 @router.get("/{abbrev}/roster/{season}")
+@limiter.limit("10/minute")
 async def get_team_roster(request: Request,abbrev, season, db: AsyncSession = Depends(get_db)):
     return await service.get_team_roster_by_id_in_db(db=db, abbrev=abbrev, season=season)
 
