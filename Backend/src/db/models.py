@@ -89,8 +89,8 @@ class RegularSeasonStats(Base):
     total_personal_fouls = Column(Integer, nullable=True)
     total_points = Column(Integer, nullable=True)
 
-    
-    player = relationship("Players", backref="regular_season_stats")
+    # Relationship to PlayerTeamsAssociation
+    player_team_association = relationship("PlayerTeamsAssociation", backref="regular_season_stats")
 
     def __repr__(self):
         return f"<RegularSeasonStats(id={self.id}, player_id={self.player_id}, season='{self.season}', games_played={self.games_played}, points_per_game={self.points_per_game}, rebounds_per_game={self.rebounds_per_game}, assists_per_game={self.assists_per_game}, steals_per_game={self.steals_per_game}, blocks_per_game={self.blocks_per_game})>"

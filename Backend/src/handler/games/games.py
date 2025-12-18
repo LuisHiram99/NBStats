@@ -21,3 +21,9 @@ async def get_standings(request: Request, conference: str = 'Overall', season: s
     standings = await service.get_standings(season=season, conference=conference)
     return standings
 
+@router.get('/todays')
+@limiter.limit("10/minute")
+async def get_todays_games(request: Request):
+    games = await service.get_todays_games()
+    return games
+

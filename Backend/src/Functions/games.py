@@ -78,7 +78,9 @@ def get_todays_games()-> None:
     games = board.games.get_dict()
     for game in games:
         gameTimeLTZ = parser.parse(game["gameTimeUTC"]).replace(tzinfo=timezone.utc).astimezone(tz=None)
-        print(f.format(gameId=game['gameId'], awayTeam=game['awayTeam']['teamName'], homeTeam=game['homeTeam']['teamName'], gameTimeLTZ=gameTimeLTZ))
+        #print(f.format(gameId=game['gameId'], awayTeam=game['awayTeam']['teamName'], homeTeam=game['homeTeam']['teamName'], gameTimeLTZ=gameTimeLTZ))
+
+    return games
 
 
 def get_current_standings(season: str = None, conference:str = 'Overall') -> pd.DataFrame:

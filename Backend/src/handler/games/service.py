@@ -22,7 +22,7 @@ functions_path = Path(__file__).resolve().parents[2] / "Functions"
 if str(functions_path) not in sys.path:
     sys.path.insert(0, str(functions_path))
 
-from games import get_todays_games as get_todays_games_func, get_current_standings
+from games import get_todays_games as get_todays_games_func, get_current_standings, get_todays_games
 
 # ------------------ Games information ------------------ #
 
@@ -61,3 +61,15 @@ async def get_standings(season: str, conference: str = 'Overall'):
     except Exception as e:
         print(f"Error retrieving standings: {e}")
         raise e
+    
+async def get_games_of_today():
+    try:
+        games = get_todays_games_func()
+        if games is None:
+            raise HTTPException(status_code=404, detail="No games found for today")
+        return games
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error retrieving today's games: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
