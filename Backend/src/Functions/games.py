@@ -115,3 +115,23 @@ def get_current_standings(season: str = None, conference:str = 'Overall') -> pd.
     except Exception as e:
         print(f"Error retrieving standings for season {season}: {e}")
         raise e
+    
+def get_last_week_games(team_id: int, season: str = '2025') -> pd.DataFrame:
+        # Get the last 7 days date range
+        today = datetime.now()
+        seven_days_ago = today - timedelta(days=8)
+
+
+        # Get team game log
+        weekly_games = get_team_game_log(team_id=team_id, season=season)
+
+        # Convert GAME_DATE to datetime for comparison
+        weekly_games['GAME_DATE'] = pd.to_datetime(weekly_games['GAME_DATE'])
+
+        # Filter for games in the last 7 days
+        recent_games = weekly_games[
+            (weekly_games['GAME_DATE'] >= seven_days_ago) & 
+            (weekly_games['GAME_DATE'] <= today)
+        ]
+
+        return recent_games
