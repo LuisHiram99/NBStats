@@ -10,7 +10,9 @@ from fastapi.staticfiles import StaticFiles
 
 from handler.teams import teams
 from handler.players import players
+from handler.games import games
 from handler.rate_limiter import limiter
+
 
 
 
@@ -45,6 +47,7 @@ api_route = "/api/v1"
 
 app.include_router(teams.router, prefix=api_route, tags=["teams"])
 app.include_router(players.router, prefix=api_route, tags=["players"])
+app.include_router(games.router, prefix=api_route, tags=["games"])
 
 
 @app.get("/")
