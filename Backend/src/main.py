@@ -7,11 +7,12 @@ from typing import Annotated
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 
-
+from auth import auth
 from handler.teams import teams
 from handler.players import players
 from handler.games import games
 from handler.rate_limiter import limiter
+from handler.current_user import current_user
 
 
 
@@ -45,6 +46,8 @@ app.mount("/logos", StaticFiles(directory=str(logos_path)), name="logos")
 # Include routers
 api_route = "/api/v1"
 
+app.include_router(auth.router, prefix=api_route, tags=["auth"])
+app.include_router(current_user.router, prefix=api_route, tags=["current_user"])
 app.include_router(teams.router, prefix=api_route, tags=["teams"])
 app.include_router(players.router, prefix=api_route, tags=["players"])
 app.include_router(games.router, prefix=api_route, tags=["games"])

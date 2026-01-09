@@ -1,6 +1,82 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
+
+
+# ------------------ User Schemas ------------------ #
+class UserBase(BaseModel):
+    username: str 
+    email: str
+    role: Optional[str] = None
+
+class UserResponse(UserBase):  
+    id: int
+    username: str 
+    email: str
+    role: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CreateUserRequest(BaseModel):
+    email: EmailStr = Field(..., max_length=100)
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=10, max_length=100)
+
+    @field_validator('password')
+    @classmethod
+    def validate_password_complexity(cls, v):
+        if not any(c.isupper() for c in v):
+            raise ValueError('Must contain uppercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Must contain number')
+        if not any(c in '!@#$%^&*' for c in v):
+            raise ValueError('Must contain special character')
+        return v
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "john@example.com",
+                "username": "johndoe",
+                "password": "Secretpassword1!"
+            }
+        }
+    }
+
+class UpdateUserRequest(BaseModel):
+    email: Optional[EmailStr] = Field(None, max_length=100)
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+
+class UpdateUserPasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=10, max_length=100)
+    new_password: str = Field(..., min_length=10, max_length=100)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password_complexity(cls, v):
+        if not any(c.isupper() for c in v):
+            raise ValueError('Must contain uppercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Must contain number')
+        if not any(c in '!@#$%^&*' for c in v):
+            raise ValueError('Must contain special character')
+        return v
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "current_password": "Oldpassword1!",
+                "new_password": "Newsecurepassword2@"
+            }
+        }
+    }
+
+
+
 
 # ------------------ Team Schemas ------------------ #
 class TeamBase(BaseModel):

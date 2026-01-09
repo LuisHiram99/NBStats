@@ -4,10 +4,32 @@ from sqlalchemy.dialects.postgresql import ENUM as PGEnum
 from .database import Base
 import enum
 
+class UserRole(enum.Enum):
+    user = "user"
+    admin = "admin"
+
+class Users(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role = Column(
+        PGEnum(UserRole, name="user_roles", create_type=True),
+        nullable=False, default=UserRole.user,
+    )
+    token_version = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
+
 class Teams(Base):
     __tablename__ = 'teams'
 
-    team_id = Column(Integer, primary_key=True, index=True)
+    team_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     full_name = Column(String, nullable=False)
     abbreviation = Column(String, nullable=False, unique=True)
     nickname = Column(String, nullable=False)
@@ -20,11 +42,19 @@ class Teams(Base):
     def __repr__(self):
         return f"<Team(id={self.id}, full_name='{self.full_name}', abbreviation='{self.abbreviation}', city='{self.city}', conference='{self.conference}', year_founded={self.year_founded})>"
     
+class UsersTeamsAssociation(Base):
+    """
+    Association table between Users and Teams (so users can track favorite teams).
+    """
+    __tablename__ = 'users_teams_association'
+    users_teams_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    team_id = Column(Integer, ForeignKey('teams.team_id'))
 
 class Players(Base):
     __tablename__ = 'players'
 
-    player_id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     player_name = Column(String, nullable=False)
     position = Column(String, nullable=True)
     height = Column(String, nullable=True)
@@ -37,6 +67,15 @@ class Players(Base):
 
     def __repr__(self):
         return f"<Player(id={self.id}, first_name='{self.first_name}', last_name='{self.last_name}', team_id={self.team_id}, position='{self.position}', height='{self.height}', weight={self.weight}, birth_date={self.birth_date})>"
+    
+class UserPlayersAssociation(Base):
+    """
+    Association table between Users and Players (so users can track favorite players).
+    """
+    __tablename__ = 'user_players_association'
+    users_players_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    player_id = Column(Integer, ForeignKey('players.player_id'))
     
 class PlayerTeamsAssociation(Base):
     __tablename__ = 'player_teams_association'
