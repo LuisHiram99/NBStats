@@ -15,6 +15,7 @@ from secrets import token_hex
 import os
 from pathlib import Path
 from db.schemas import CreateUserRequest
+from .email_verification import send_verification_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -59,7 +60,19 @@ async def create_user(user: CreateUserRequest, db: db_dependency, request: Reque
     db.add(create_user_model)
     await db.commit()
     await db.refresh(create_user_model)
-    return {'message': 'User created successfully'}
+    
+    # Generate verification token and send email
+    verification_token = create_verification_token(user.email, create_user_model.id)
+    base_url = os.getenv("BASE_URL", "http://localhost:8000")
+    verification_link = f"{base_url}/api/v1/auth/verify-email?token={verification_token}"
+    
+    try:
+        await send_verification_email(user.email, user.username, verification_link)
+    except Exception as e:
+        # Log the error but don't fail the signup process
+        print(f"Failed to send verification email: {str(e)}")
+    
+    return {'message': 'User created successfully. Please check your email to verify your account.'}
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(db: db_dependency, request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
@@ -73,8 +86,96 @@ async def login_for_access_token(db: db_dependency, request: Request, form_data:
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Optional: Check if email is verified before allowing login
+    # if user.email_verified != 1:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="Please verify your email before logging in",
+    #     )
+    
     token = create_access_token(user.email, user.id, user.token_version, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     return {"access_token": token, "token_type": "bearer"}
+
+@router.get("/verify-email")
+async def verify_email(token: str, db: db_dependency):
+    """Verify user's email address using the verification token"""
+    try:
+        # Decode the verification token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        user_id: int = payload.get("user_id")
+        token_type: str = payload.get("type")
+        
+        if email is None or user_id is None or token_type != "email_verification":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid verification token"
+            )
+        
+        # Find the user in the database
+        result = await db.execute(select(Users).where(Users.id == user_id, Users.email == email))
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Check if email is already verified
+        if user.email_verified == 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email is already verified"
+            )
+        
+        # Mark email as verified
+        user.email_verified = 1
+        user.email_verification_at = datetime.now(timezone.utc)
+        await db.commit()
+        
+        return {"message": "Email verified successfully"}
+        
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token"
+        )
+
+@router.post("/resend-verification")
+async def resend_verification_email(email: str, db: db_dependency, request: Request):
+    """Resend verification email to the user"""
+    # Find the user by email
+    result = await db.execute(select(Users).where(Users.email == email))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Email not found"
+        )
+    
+    # Check if email is already verified
+    if user.email_verified == 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already verified"
+        )
+    
+    # Generate new verification token and send email
+    verification_token = create_verification_token(user.email, user.id)
+    base_url = os.getenv("BASE_URL", "http://localhost:8000")
+    verification_link = f"{base_url}/api/v1/auth/verify-email?token={verification_token}"
+    
+    try:
+        await send_verification_email(user.email, user.username, verification_link)
+        return {"message": "Verification email sent successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send verification email"
+        )
 
 async def authenticate_user(db: db_dependency, username: str, password: str):
     result = await db.execute(select(Users).where(Users.username == username))
@@ -86,6 +187,17 @@ async def authenticate_user(db: db_dependency, username: str, password: str):
 def create_access_token(email: str, user_id: int, token_version: int, expires_delta: timedelta | None = None):
     encode = {"sub": email, "user_id": user_id, "token_version": token_version}
     expires = datetime.now(timezone.utc) + (expires_delta if expires_delta else timedelta(minutes=15))
+    encode.update({"exp": expires})
+    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def create_verification_token(email: str, user_id: int):
+    """Create a verification token that expires in 24 hours"""
+    encode = {
+        "sub": email, 
+        "user_id": user_id, 
+        "type": "email_verification"
+    }
+    expires = datetime.now(timezone.utc) + timedelta(hours=24)
     encode.update({"exp": expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 

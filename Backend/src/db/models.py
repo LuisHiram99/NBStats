@@ -13,7 +13,9 @@ class Users(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False, default="False")
+    email_verified = Column(Integer, default=0, nullable=False)
+    email_verification_at = Column(DateTime(timezone=True))
     hashed_password = Column(String, nullable=False)
     role = Column(
         PGEnum(UserRole, name="user_roles", create_type=True),
