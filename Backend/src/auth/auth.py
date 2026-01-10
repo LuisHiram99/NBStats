@@ -15,7 +15,7 @@ from secrets import token_hex
 import os
 from pathlib import Path
 from db.schemas import CreateUserRequest
-from .email_verification import send_verification_email
+from .email_verification import send_verification_email, create_verification_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,23 +30,33 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 300000  # 300000 minutes = ~208 days
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-# Use argon2 for password hashing (using argon2-cffi backend)
+# Password hashing context
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
+# Token response model
 class Token(BaseModel):
     access_token: str
     token_type: str
-
+# Database dependency
 db_dependency = Annotated[AsyncSession, Depends(get_db)]
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(user: CreateUserRequest, db: db_dependency, request: Request):
+    """
+    Create a new user and send email verification link.
+    Args:
+        user (CreateUserRequest): User signup data.
+        db (AsyncSession): Database session.
+        request (Request): FastAPI request object.
+    """
     client_ip = request.client.host
+    # Create user model instance
     create_user_model = Users(
         email=user.email,
         username=user.username,
         hashed_password=pwd_context.hash(user.password)
     )
+    # Check if email or username already exists
     if await email_exists(user.email, db):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -57,6 +67,7 @@ async def create_user(user: CreateUserRequest, db: db_dependency, request: Reque
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already taken"
         )
+    # Add user to the database
     db.add(create_user_model)
     await db.commit()
     await db.refresh(create_user_model)
@@ -67,6 +78,7 @@ async def create_user(user: CreateUserRequest, db: db_dependency, request: Reque
     verification_link = f"{base_url}/api/v1/auth/verify-email?token={verification_token}"
     
     try:
+        # Send verification email
         await send_verification_email(user.email, user.username, verification_link)
     except Exception as e:
         # Log the error but don't fail the signup process
@@ -76,6 +88,7 @@ async def create_user(user: CreateUserRequest, db: db_dependency, request: Reque
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(db: db_dependency, request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+
     client_ip = request.client.host
     username = form_data.username
     password = form_data.password
@@ -190,17 +203,6 @@ def create_access_token(email: str, user_id: int, token_version: int, expires_de
     encode.update({"exp": expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def create_verification_token(email: str, user_id: int):
-    """Create a verification token that expires in 24 hours"""
-    encode = {
-        "sub": email, 
-        "user_id": user_id, 
-        "type": "email_verification"
-    }
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
-    encode.update({"exp": expires})
-    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
-
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: db_dependency):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -230,8 +232,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: db
         # role is an Enum; expose as string value
         return {'email': user.email, 'user_id': user.id, 'role': getattr(user.role, 'value', user.role)}
     except JWTError:
-        raise credentials_exception
-    
+        raise credentials_exception    
 
 async def admin_required(current_user = Depends(get_current_user)):
     '''
@@ -243,7 +244,6 @@ async def admin_required(current_user = Depends(get_current_user)):
             detail="Admins only"
         )
     return current_user
-
 
 def is_admin(user: dict = Depends(get_current_user)):
     '''
