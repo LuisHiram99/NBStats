@@ -186,10 +186,6 @@ async def add_favorite_team_for_user(db: AsyncSession, user_id: int, teams_id_li
         if not user_check.scalar_one_or_none():
             raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
         
-        added_teams = []
-        skipped_teams = []
-        invalid_teams = []
-        
         for team_id in teams_id_list:
             
             # Check if association already exists
@@ -199,7 +195,6 @@ async def add_favorite_team_for_user(db: AsyncSession, user_id: int, teams_id_li
                 .where(models.UsersTeamsAssociation.team_id == team_id)
             )
             if existing.scalar_one_or_none():
-                skipped_teams.append(team_id)
                 continue
                 
             # Check if team exists
@@ -209,9 +204,7 @@ async def add_favorite_team_for_user(db: AsyncSession, user_id: int, teams_id_li
             )
             team = db_team.scalar_one_or_none()
             if team is None:
-                print(f"DEBUG: Team with ID {team_id} not found in database")
-                invalid_teams.append(team_id)
-                continue
+                raise HTTPException(status_code=404, detail=f"Team with ID {team_id} not found")
                 
             # Add to favorites
             association = models.UsersTeamsAssociation(
@@ -219,33 +212,14 @@ async def add_favorite_team_for_user(db: AsyncSession, user_id: int, teams_id_li
                 team_id=team_id
             )
             db.add(association)
-            added_teams.append(team_id)
-            print(f"DEBUG: Added team {team_id} ({team.full_name}) to favorites")
-            
-        if invalid_teams:
-            # Get all available team IDs for debugging
-            all_teams = await db.execute(select(models.Teams.team_id, models.Teams.full_name))
-            available_teams = [(t[0], t[1]) for t in all_teams.all()]
-            print(f"DEBUG: Available teams: {available_teams}")
-            raise HTTPException(
-                status_code=404, 
-                detail=f"Teams with IDs {invalid_teams} not found. Available team IDs: {[t[0] for t in available_teams]}"
-            )
-            
         await db.commit()
         
         return {
-            "message": "Favorite teams operation completed",
-            "added": added_teams,
-            "skipped": skipped_teams,
-            "total_processed": len(teams_id_list)
+            "message": "Favorite teams operation completed"
         }
-        
     except HTTPException:
-        await db.rollback()
         raise
     except Exception as e:
-        await db.rollback()
         print(f"Error adding favorite teams for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -283,7 +257,6 @@ async def get_favorite_teams_for_user(db: AsyncSession, user_id: int) -> List[sc
             return []  # Return empty list if no favorites
         
         result = [schemas.TeamResponse.model_validate(team) for team in teams]
-        print(f"DEBUG: Successfully converted {len(result)} teams to response format")
         return result
         
     except HTTPException:
