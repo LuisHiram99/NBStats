@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 
 
@@ -137,7 +137,10 @@ class PlayerTeamAssociationResponse(PlayerTeamAssociationBase):
 
     class Config:
         from_attributes = True
-
+# Request models
+class FavoriteTeamsRequest(BaseModel):
+    team_ids: List[int]
+    
 class PlayerTeamAssociationCreate(PlayerTeamAssociationBase):
     players_teams_id: int
 
