@@ -25,11 +25,43 @@ if str(functions_path) not in sys.path:
     sys.path.insert(0, str(functions_path))
 
 from games import get_todays_games_function, get_current_standings
+from helpfuncs import get_current_season
 
 redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
 CACHE_TTL = 60 * 10
 
 # ------------------ Games information ------------------ #
+
+async def get_standings(season: str, conference: str = 'Overall'):
+    """
+    Retrieve standings for a given season and conference from the API.
+    
+    Returns:
+        Standings DataFrame
+    """
+    current_season = get_current_season()
+    today = datetime.now().strftime("%Y-%m-%d")
+    cache_key = f"standings:{current_season}:{conference}"
+    try:
+        cached_data = redis_client.get(cache_key)
+        if cached_data:
+            print("Standings fetched from cache")
+            return json.loads(cached_data)
+        
+        standings_df = get_current_standings(season=season, conference=conference)
+        if standings_df is None or standings_df.empty:
+            raise HTTPException(status_code=404, detail="No standings found for the given season and conference")
+        print("Standings fetched from API")
+        # We only cache the current season standings since past seasons don't change
+        if season == current_season:
+            redis_client.set(cache_key, standings_df.to_json(orient='records'), ex=CACHE_TTL)
+        return standings_df.to_dict(orient='records')
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error retrieving standings: {e}")
+        raise e
+
 
 async def get_todays_games_service():
     """
@@ -98,20 +130,3 @@ async def get_cache_info():
         raise HTTPException(status_code=500, detail="Error retrieving cache info")
 
     
-async def get_standings(season: str, conference: str = 'Overall'):
-    """
-    Retrieve standings for a given season and conference from the API.
-    
-    Returns:
-        Standings DataFrame
-    """
-    try:
-        standings_df = get_current_standings(season=season, conference=conference)
-        if standings_df is None or standings_df.empty:
-            raise HTTPException(status_code=404, detail="No standings found for the given season and conference")
-        return standings_df.to_dict(orient='records')
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"Error retrieving standings: {e}")
-        raise e

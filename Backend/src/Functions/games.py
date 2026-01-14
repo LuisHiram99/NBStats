@@ -1,15 +1,13 @@
-from nba_api.stats.static import teams
-from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import teamgamelog
-from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import leaguestandingsv3
 from datetime import datetime, timezone, timedelta
 from dateutil import parser
 from nba_api.live.nba.endpoints import scoreboard
 import pandas as pd
-import numpy as np
-from typing import List, Dict, Tuple, Union, Optional
+from typing import Optional
 from helpfuncs import get_current_season
+
+
 
 
 
