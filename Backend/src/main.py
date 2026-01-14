@@ -5,6 +5,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+from redis import Redis
 
 from auth import auth
 from handler.teams import teams
@@ -14,13 +16,21 @@ from handler.rate_limiter import limiter
 from handler.current_user import current_user
 
 
-
-
 app = FastAPI(
     title="NBStats",
     description="NBA app for getting high valuable stats",
     version="0.1.0"
 )
+
+
+redis_client = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global redis_client
+    redis_client = Redis(host="localhost", port=6379, decode_responses=True)
+    yield
+    redis_client.close()
 
 app.add_middleware(
     CORSMiddleware,

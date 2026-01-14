@@ -1,15 +1,13 @@
-from nba_api.stats.static import teams
-from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import teamgamelog
-from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import leaguestandingsv3
 from datetime import datetime, timezone, timedelta
 from dateutil import parser
 from nba_api.live.nba.endpoints import scoreboard
 import pandas as pd
-import numpy as np
-from typing import List, Dict, Tuple, Union, Optional
+from typing import Optional
 from helpfuncs import get_current_season
+
+
 
 
 
@@ -48,10 +46,10 @@ def get_team_game_log( team_id: int, season: str) -> pd.DataFrame:
     game_log = game_log.get_data_frames()[0]
     return game_log
 
-def get_todays_games()-> None:
+def get_todays_games_function()-> None:
     f = "{gameId}: {awayTeam} @ {homeTeam} : {gameTimeLTZ}" 
     board = scoreboard.ScoreBoard()
-    print("ScoreBoardDate: " + board.score_board_date)
+    #print("ScoreBoardDate: " + board.score_board_date)
     games = board.games.get_dict()
     for game in games:
         gameTimeLTZ = parser.parse(game["gameTimeUTC"]).replace(tzinfo=timezone.utc).astimezone(tz=None)
