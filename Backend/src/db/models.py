@@ -134,4 +134,17 @@ class RegularSeasonStats(Base):
     player_team_association = relationship("PlayerTeamsAssociation", backref="regular_season_stats")
 
     def __repr__(self):
-        return f"<RegularSeasonStats(id={self.id}, player_id={self.player_id}, season='{self.season}', games_played={self.games_played}, points_per_game={self.points_per_game}, rebounds_per_game={self.rebounds_per_game}, assists_per_game={self.assists_per_game}, steals_per_game={self.steals_per_game}, blocks_per_game={self.blocks_per_game})>"
+        return f"<RegularSeasonStats(id={self.id}, player_id={self.player_id}, season='{self.season}', \
+            games_played={self.games_played}, points_per_game={self.points_per_game}, rebounds_per_game={self.rebounds_per_game},\
+                  assists_per_game={self.assists_per_game}, steals_per_game={self.steals_per_game}, blocks_per_game={self.blocks_per_game})>"
+    
+
+class historical_stadings(Base):
+    __tablename__ = "historical_standings"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    season = Column(String, nullable=False)
+    team_id = Column(Integer, ForeignKey('teams.team_id'), nullable=False)
+    wins = Column(Integer, nullable=False)
+    losses = Column(Integer, nullable=False)
+    playoff_rank = Column(Integer, nullable=True)
