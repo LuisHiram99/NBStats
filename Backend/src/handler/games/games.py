@@ -24,6 +24,11 @@ async def get_standings(request: Request, conference: str = 'Overall', season: s
 @router.get('/todays')
 @limiter.limit("10/minute")
 async def get_todays_games(request: Request):
-    games = await service.get_todays_games()
+    games = await service.get_todays_games_service()
     return games
 
+@router.get('/cache/info')
+@limiter.limit("5/minute")
+async def get_cache_info(request: Request):
+    info = await service.get_cache_info()
+    return info
