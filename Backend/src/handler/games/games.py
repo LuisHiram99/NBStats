@@ -18,17 +18,24 @@ router = APIRouter(
 @router.get("/standings")
 @limiter.limit("10/minute")
 async def get_standings(request: Request, conference: str = 'Overall', season: str = '2025-26'):
+    """
+    Get NBA standings for a given season and conference.
+    Args
+        conference (str): 'Overall', 'East', or 'West'
+        season (str): Season in 'YYYY-YY' format
+    Returns:
+        List of standings records
+    """
     standings = await service.get_standings(season=season, conference=conference)
     return standings
 
 @router.get('/todays')
 @limiter.limit("10/minute")
 async def get_todays_games(request: Request):
+    """
+    Get today's NBA games.
+    Returns:
+        List of today's games
+    """
     games = await service.get_todays_games_service()
     return games
-
-@router.get('/cache/info')
-@limiter.limit("5/minute")
-async def get_cache_info(request: Request):
-    info = await service.get_cache_info()
-    return info

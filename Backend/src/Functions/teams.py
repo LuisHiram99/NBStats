@@ -13,11 +13,11 @@ from typing import List, Dict, Tuple, Union, Optional
 
 # Import get_current_standings with error handling for different import contexts
 try:
-    from .games import get_current_standings
+    from ..handler.games.games_functions import get_current_standings
 except ImportError:
     # Fallback for when imported from outside package context
     try:
-        from games import get_current_standings
+        from Backend.src.handler.games.games_functions import get_current_standings
     except ImportError:
         # Define a minimal version if games module is not available
         def get_current_standings(season=None, conference='Overall'):
