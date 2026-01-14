@@ -19,7 +19,7 @@ if str(backend_src_dir) not in sys.path:
 from db.database import async_session
 from db.models import Players, Teams, PlayerTeamsAssociation
 from db.schemas import PlayerTeamAssociationCreate
-from players import player
+from Backend.src.handler.players.players_functions import player
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 

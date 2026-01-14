@@ -1,18 +1,6 @@
-from fastapi import HTTPException, Request
-import sys
-from pathlib import Path
-import json
-
-# Add NBStats root to path
-nbstats_root = Path(__file__).resolve().parents[4]
-datos_path = nbstats_root / "Datos" / "Functions"
-if str(datos_path) not in sys.path:
-    sys.path.insert(0, str(datos_path))
-
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.database import async_session
-from db.models import Teams
 from db import models, schemas
 
 
@@ -65,7 +53,7 @@ async def get_player_by_name(db: AsyncSession, name: str):
         player = db_player.scalars().all()
         if not player:
             raise HTTPException(status_code=404, detail="Player not found")
-        return player
+        return [schemas.PlayerResponse.model_validate(p) for p in player]
     except HTTPException:
         raise 
     except Exception as e:

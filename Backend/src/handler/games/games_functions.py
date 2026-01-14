@@ -5,24 +5,7 @@ from dateutil import parser
 from nba_api.live.nba.endpoints import scoreboard
 import pandas as pd
 from typing import Optional
-from pathlib import Path
-
-
-def get_current_season():
-    """Get current NBA season in the format 'YYYY-YY'"""
-    today = datetime.now()
-    year = today.year
-    month = today.month
-    
-    # NBA season typically starts in October
-    # If current month is before October, we're in the second half of the season
-    if month < 10:
-        season_start = year - 1
-    else:
-        season_start = year
-    
-    season_end = str(season_start + 1)[-2:]  # Get last 2 digits
-    return f"{season_start}-{season_end}"
+from ..helpfuncs import get_current_season
 
 def check_valid_season(season: Optional[str] = None) -> str:
     """Check if the provided season is valid and return formatted season."""

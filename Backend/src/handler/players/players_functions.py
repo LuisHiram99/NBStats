@@ -3,21 +3,16 @@ import matplotlib.pyplot as plt
 from nba_api.stats.static import players
 import seaborn as sns
 import pandas as pd
-from json import loads, dumps
 from nba_api.stats.static import players
 from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
 import time
-
-
-pd.set_option("display.max_columns", None)
-
 from nba_api.stats.static import teams
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import commonteamroster
-from nba_api.live.nba.endpoints import scoreboard
 from nba_api.stats.endpoints import playerdashboardbyyearoveryear
 from nba_api.stats.endpoints import playergamelog
-from helpfuncs import get_current_season
+from ..helpfuncs import get_current_season
+
 
 eastern_conference = {
     'ATL', 'BOS', 'BKN', 'CHA', 'CHI', 'CLE', 'DET', 'IND',
