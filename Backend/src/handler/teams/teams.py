@@ -74,6 +74,10 @@ async def remove_favorite_team(
         teams_id_list=favorite_teams.team_ids
     )
 
+@router.get("/ids/{team_id}", response_model=TeamResponse)
+@limiter.limit("10/minute")
+async def get_team_by_id(request: Request, team_id:int, db: AsyncSession = Depends(get_db)):
+    return await service.get_single_team_by_id(db=db, team_id=team_id)
 
 @router.get("/conference/{conference}", response_model=List[TeamBasicInfoResponse])
 @limiter.limit("10/minute")

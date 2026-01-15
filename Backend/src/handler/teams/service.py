@@ -45,7 +45,26 @@ async def get_all_team_ids(db: AsyncSession):
     except Exception as e:
         print(f"Error retrieving team IDs: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+async def get_single_team_by_id(db: AsyncSession, team_id:int):
+    try:
+        # Get team by id
+        db_team = await db.execute(
+            select(models.Teams)
+            .where(models.Teams.team_id == team_id)
+        )
+        result = db_team.scalar_one_or_none()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="Team not found")
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Error getting team by id")
+        raise HTTPException(status_code=500, detail=str(e))
+
 async def get_team_by_abbreviation(db: AsyncSession, abbrev: str):
     try:
         db_team = await db.execute(
