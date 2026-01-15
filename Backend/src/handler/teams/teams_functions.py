@@ -2,27 +2,11 @@ from nba_api.stats.static import teams
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import teamgamelog
 from nba_api.stats.endpoints import commonteamroster
-from datetime import datetime, timezone, timedelta
-from dateutil import parser
-from nba_api.live.nba.endpoints import scoreboard
+from datetime import datetime
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-from typing import List, Dict, Tuple, Union, Optional
+from typing import Dict
+from ..games.games_functions import get_current_standings
 
-# Import get_current_standings with error handling for different import contexts
-try:
-    from ..handler.games.games_functions import get_current_standings
-except ImportError:
-    # Fallback for when imported from outside package context
-    try:
-        from Backend.src.handler.games.games_functions import get_current_standings
-    except ImportError:
-        # Define a minimal version if games module is not available
-        def get_current_standings(season=None, conference='Overall'):
-            print("Warning: get_current_standings not available. Using placeholder.")
-            return pd.DataFrame()
 
 eastern_conference = {
     'ATL', 'BOS', 'BKN', 'CHA', 'CHI', 'CLE', 'DET', 'IND',

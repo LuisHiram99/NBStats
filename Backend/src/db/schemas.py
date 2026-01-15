@@ -20,7 +20,6 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
-
 class CreateUserRequest(BaseModel):
     email: EmailStr = Field(..., max_length=100)
     username: str = Field(..., min_length=3, max_length=50)
@@ -75,9 +74,6 @@ class UpdateUserPasswordRequest(BaseModel):
         }
     }
 
-
-
-
 # ------------------ Team Schemas ------------------ #
 class TeamBase(BaseModel):
     full_name: str
@@ -89,6 +85,14 @@ class TeamBase(BaseModel):
     year_founded: Optional[int] = None
     logo: Optional[str] = None
 
+class TeamBasicInfoResponse(BaseModel):
+    team_id: int
+    full_name: str
+    abbreviation: str
+    logo: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 class TeamResponse(TeamBase):
     team_id: int
@@ -96,10 +100,8 @@ class TeamResponse(TeamBase):
     class Config:
         from_attributes = True
 
-
 class TeamCreate(TeamBase):
     team_id: int
-
 
 class TeamUpdate(TeamBase):
     pass
@@ -137,7 +139,7 @@ class PlayerTeamAssociationResponse(PlayerTeamAssociationBase):
 
     class Config:
         from_attributes = True
-# Request models
+
 class FavoriteTeamsRequest(BaseModel):
     team_ids: List[int]
     

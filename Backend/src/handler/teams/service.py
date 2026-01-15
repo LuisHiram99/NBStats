@@ -3,17 +3,9 @@ import sys
 from pathlib import Path
 import json
 from typing import List
-
-# Add NBStats root to path
-nbstats_root = Path(__file__).resolve().parents[4]
-datos_path = nbstats_root / "Datos" / "Functions"
-if str(datos_path) not in sys.path:
-    sys.path.insert(0, str(datos_path))
-
+from .teams_functions import get_team_roster_per_season
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.database import async_session
-from db.models import Teams
 from db import models, schemas
 
 # ------------------ Teams Overall information ------------------ #
@@ -42,17 +34,14 @@ async def get_all_team_ids(db: AsyncSession):
     """Get all team IDs and names for debugging purposes"""
     try:
         result = await db.execute(
-            select(models.Teams.team_id, models.Teams.full_name, models.Teams.abbreviation)
+            select(models.Teams.team_id, models.Teams.full_name, models.Teams.abbreviation, models.Teams.logo)
         )
         teams = result.all()
-        return [
-            {
-                "team_id": team[0], 
-                "full_name": team[1], 
-                "abbreviation": team[2]
-            } 
-            for team in teams
-        ]
+        return [schemas.TeamBasicInfoResponse(
+                team_id=team.team_id, 
+                full_name=team.full_name, 
+                abbreviation=team.abbreviation,
+                logo=team.logo) for team in teams]
     except Exception as e:
         print(f"Error retrieving team IDs: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -82,9 +71,12 @@ async def get_teams_by_conference(db: AsyncSession, conference: str):
         )
 
         teams = db_teams.scalars().all()
-        return [schemas.TeamResponse.model_validate(team) for team in teams]
-        if teams is None:
+        
+        if not teams:
             raise HTTPException(status_code=404, detail="No teams found for this conference")
+        
+        return [schemas.TeamBasicInfoResponse.model_validate(team) for team in teams]
+    
     except HTTPException:
         raise
     except Exception as e:
@@ -103,14 +95,7 @@ async def get_team_roster_by_abbrev(db: AsyncSession,season: str, abbrev: str):
     Returns:
         List of player dictionaries representing the team's roster
     """
-    try:
-        # Add the Backend/src/Functions path
-        src_functions_path = Path(__file__).resolve().parents[2] / "Functions"
-        if str(src_functions_path) not in sys.path:
-            sys.path.insert(0, str(src_functions_path))
-            
-        from teams import get_team_roster_per_season
-        
+    try: 
         team_id_query = await db.execute(
             select(models.Teams.team_id)
             .where(models.Teams.abbreviation == abbrev)
@@ -215,7 +200,7 @@ async def add_favorite_team_for_user(db: AsyncSession, user_id: int, teams_id_li
         await db.commit()
         
         return {
-            "message": "Favorite teams operation completed"
+            "message": "Team(s) added successfully to favorites"
         }
     except HTTPException:
         raise
